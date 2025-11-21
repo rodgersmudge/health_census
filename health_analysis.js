@@ -5,7 +5,7 @@ const patients = [];
 
 function addpatient() {
     const name = document.getElementById("name").value;
-    const gender = document.querSelector('input[name="gender"]:checked');
+    const gender = document.querySelector('input[name="gender"]:checked');
     const age = document.getElementById("age").value;
     const condition = document.getElementById("condition").value;
 
@@ -23,43 +23,81 @@ function addpatient() {
         document.getElementById("condition").value = ""
     }
 
-    function generateReport() {
+    function generateReport() {    
         const numPatients = patients.length;
-        const conditiondCOunt = {
+        const conditionsCount = {
+          Diabetes: 0,
+          Thyroid: 0,
+          "High Blood Pressure": 0,
+        };
+        const genderConditionsCount = {
+          Male: {
             Diabetes: 0,
             Thyroid: 0,
             "High Blood Pressure": 0,
-        };
-        const genderConditionsCount = {
-            Male: {
-                Diabetes: 0,
-                Thyroid: 0,
-                "High Blood Pressure": 0,
-            },
-            Female: {
-                Diabetes: 0,
-                Thyroid: 0,
-                "High Blood Pressure": 0,
-            }
+          },
+          Female: {
+            Diabetes: 0,
+            Thyroid: 0,
+            "High Blood Pressure": 0,
+          },
         };
 
-        for(const patient in patients) {
-            conditiondCOunt[patient.condition]++;
-            genderConditionsCount[patient.gender][patient.condition]++;
+        for (const patient of patients) {
+          conditionsCount[patient.condition]++;
+          genderConditionsCount[patient.gender][patient.condition]++;
         }
 
         report.innerHTML = `Number of patients: ${numPatients}<br><br>`;
-        report.innerHTML = `Conditions breakdown <br>`;
-        for (const condition in conditiondCOunt) {
-            report.innerHTML = `${condition}: ${conditiondCOunt[condition]}<br>`;
+        report.innerHTML += `Conditions Breakdown:<br>`;
+        for (const condition in conditionsCount) {
+          report.innerHTML += `${condition}: ${conditionsCount[condition]}<br>`;
         }
 
-        report.innerHTML = `<br>Gender-Based Conditions:<br>`;
-        for(const gender in genderConditionsCount) {
-            report.innerHTML= `${gender}: <br>`;
-            for (const condition in genderConditionsCount[gender]) {
-                report.innerHTML += `&nbsp;&nbsp;${condition}: ${genderConditionsCount[gender][condition]}<br>`;
+        report.innerHTML += `<br>Gender-Based Conditions:<br>`;
+        for (const gender in genderConditionsCount) {
+          report.innerHTML += `${gender}:<br>`;
+          for (const condition in genderConditionsCount[gender]) {
+            report.innerHTML += `&nbsp;&nbsp;${condition}: ${genderConditionsCount[gender][condition]}<br>`;
+          }
         }
-        }
-    }
+      }
+
+ 
+    
 addPatientButton.addEventListener("click",addpatient);
+
+function searchCondition() {
+    const input = document.getElementById('conditionInput').value.toLowerCase();
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
+
+    fetch('health_analysis.json')
+    .then(response => response.json())
+    .then(data => {
+        const condition = data.conditions.find(item => item.name.toLowerCase() === input);
+
+        if(condition) {
+            const symptoms = condition.symptoms.join(', ');
+            const prevention = condition.prevention.join(', ');
+            const treatment = condition.treatment;
+
+            resultDiv.innerHTML += `<h2>${condition.name}</h2>`;
+            resultDiv.innerHTML += `<img src="${condition.imagesrc}" alt="hjh">`;
+
+            resultDiv.innerHTML += `<p><strong>Symptoms : </strong> ${symptoms}</p>`;
+            resultDiv.innerHTML += `<p><strong> Preventive measures : </strong> ${prevention}</p>`;
+            resultDiv.innerHTML += `<p><strong> Treatment : </strong> ${treatment}</p>`;
+
+        } else {
+            resultDiv.innerHTML += 'Condition not found';
+        }
+    })
+    .catch(error => {
+        console.log("Error: ", error);
+        resultDiv.innerHTML = 'An error occured while fetching data';
+
+    });
+
+}
+btnSearch.addEventListener('click',searchCondition);
